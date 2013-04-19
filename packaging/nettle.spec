@@ -6,7 +6,7 @@ Name:		nettle
 Summary:	Nettle cryptographic library
 Version:	2.1
 Release:	1
-License:	LGPLv2+
+License:	LGPLv2.1
 Group:		System/Libraries
 URL:		http://www.lysator.liu.se/~nisse/nettle/
 Source:		http://www.lysator.liu.se/~nisse/archive/%{name}-%{version}.tar.gz
