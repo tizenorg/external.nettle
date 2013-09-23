@@ -38,11 +38,14 @@ make
 make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 make install-shared DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
+mkdir -p %{buildroot}/usr/share/license
+cp COPYING.LIB %{buildroot}/usr/share/license/%{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
+/usr/share/license/%{name}
 %manifest nettle.manifest
 %{_bindir}/*
 %{_infodir}/*
