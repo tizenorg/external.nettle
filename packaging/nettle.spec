@@ -4,7 +4,7 @@
 
 Name:		nettle
 Summary:	Nettle cryptographic library
-Version:	2.1
+Version:	2.1_1
 Release:	1
 License:	LGPLv2.1
 Group:		System/Libraries
@@ -60,3 +60,7 @@ rm -rf $RPM_BUILD_ROOT
 %post -p /sbin/ldconfig
 
 %postun -p /sbin/ldconfig
+
+%changelog
+* Mon Sep 23 2013 Keunsoon Lee <keunsoon.lee@samsung.com>
+- [Release] Update changelog for nettle-2.1_1
