@@ -4,12 +4,12 @@
 
 Name:		nettle
 Summary:	Nettle cryptographic library
-Version:	2.1
+Version:	2.1_2.3
 Release:	1
-License:	LGPLv2+
+License:	LGPL-2.1+ and GPL-2.0+
 Group:		System/Libraries
 URL:		http://www.lysator.liu.se/~nisse/nettle/
-Source:		http://www.lysator.liu.se/~nisse/archive/%{name}-%{version}.tar.gz
+Source0:		%{name}-%{version}.tar.gz
 BuildRequires:	autoconf
 BuildRequires:	openssl-devel
 BuildRequires:	gmp-devel
@@ -38,11 +38,15 @@ make
 make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 make install-shared DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
+mkdir -p %{buildroot}/usr/share/license
+cp COPYING %{buildroot}/usr/share/license/%{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
+/usr/share/license/%{name}
+%manifest nettle.manifest
 %{_bindir}/*
 %{_infodir}/*
 %{_libdir}/libnettle.so.%{nettlemajor}*
@@ -56,3 +60,20 @@ rm -rf $RPM_BUILD_ROOT
 %post -p /sbin/ldconfig
 
 %postun -p /sbin/ldconfig
+
+%changelog
+* Wed Nov 27 2013 Keunsoon Lee <keunsoon.lee@samsung.com>
+- [Release] Update changelog for nettle-2.1_2.3
+- Add smack exec_label for several bin file
+
+* Fri Oct 12 2012 Kwangtae Ko <kwangtae.ko@samsung.com>
+- [Release] Update changelog for nettle-2.1_2.2
+
+* Fri Oct 12 2012 Kwangtae Ko <kwangtae.ko@samsung.com>
+- [Title] Add License Information
+
+* Fri Sep 21 2012 Kwangtae Ko <kwangtae.ko@samsung.com>
+- [Release] Update changelog for nettle-2.1_2.1
+
+* Thu Aug 16 2012 Keunsoon Lee <keunsoon.lee@samsung.net>
+- release nettle-2.1-2
