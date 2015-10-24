@@ -6,7 +6,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2007 Niels Möller
+ * Copyright (C) 2007 Niels MÃ¶ller
  *
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +20,8 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 #if HAVE_CONFIG_H
@@ -124,7 +124,7 @@ vector_clear_bits (unsigned long *vector, unsigned long step,
 static unsigned
 find_first_one (unsigned long x)
 {  
-  unsigned table[0x101] =
+  static const unsigned char table[0x101] =
     {
      15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -145,10 +145,11 @@ find_first_one (unsigned long x)
       7,
     };
 
+  unsigned i = 0;
+
   /* Isolate least significant bit */
   x &= -x;
 
-  unsigned i = 0;
 #if NEED_HANDLE_LARGE_LONG
 #ifndef SIZEOF_LONG
   /* Can not be tested by the preprocessor. May generate warnings
@@ -243,12 +244,23 @@ main (int argc, char **argv)
   int verbose = 0;
   int c;
 
-  while ( (c = getopt(argc, argv, "?svb:")) != -1)
+  enum { OPT_HELP = 300 };
+  static const struct option options[] =
+    {
+      /* Name, args, flag, val */
+      { "help", no_argument, NULL, OPT_HELP },
+      { "verbose", no_argument, NULL, 'v' },
+      { "block-size", required_argument, NULL, 'b' },
+      { "quiet", required_argument, NULL, 'q' },
+      { NULL, 0, NULL, 0}
+    };
+
+  while ( (c = getopt_long(argc, argv, "svb:", options, NULL)) != -1)
     switch (c)
       {
-      case '?':
+      case OPT_HELP:
 	usage();
-	return EXIT_FAILURE;
+	return EXIT_SUCCESS;
       case 'b':
 	block_nbits = CHAR_BIT * atosize(optarg);
 	if (!block_nbits)
@@ -258,13 +270,16 @@ main (int argc, char **argv)
 	  }
 	break;
 
-      case 's':
+      case 'q':
 	silent = 1;
 	break;
 
       case 'v':
 	verbose++;
 	break;
+
+      case '?':
+	return EXIT_FAILURE;
 
       default:
 	abort();
@@ -384,5 +399,9 @@ main (int argc, char **argv)
 	    printf("%lu\n", n);
 	}
     }
+
+  free(sieve);
+  free(block);
+
   return EXIT_SUCCESS;
 }

@@ -4,7 +4,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2002 Niels Möller
+ * Copyright (C) 2002 Niels MÃ¶ller
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +18,8 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 #if HAVE_CONFIG_H
@@ -41,7 +41,7 @@
 
 #include "getopt.h"
 
-#define KEYSIZE 900
+#define DEFAULT_KEYSIZE 2048
 #define ESIZE 30
 
 static void
@@ -51,6 +51,21 @@ progress(void *ctx, int c)
   fputc(c, stderr);
 }
 
+static unsigned long
+uint_arg (char c, const char *arg)
+{
+  unsigned long val;
+  char *end;
+
+  val = strtoul(arg, &end, 0);
+  if (*arg == '\0' || *end != '\0')
+    {
+      werror ("Invalid integer argument for -%c option.\n", c);
+      exit (EXIT_FAILURE);
+    }
+
+  return val;      
+}
 
 int
 main(int argc, char **argv)
@@ -67,9 +82,21 @@ main(int argc, char **argv)
   struct nettle_buffer pub_buffer;
   struct nettle_buffer priv_buffer;
 
-  while ( (c = getopt(argc, argv, "o:r:")) != -1)
+  unsigned long key_size = DEFAULT_KEYSIZE;
+  unsigned long key_e = 0;
+
+  enum { OPT_HELP = 300 };
+  static const struct option options[] =
+    {
+      /* Name, args, flag, val */
+      { "help", no_argument, NULL, OPT_HELP },
+      { "random", required_argument, NULL, 'r' },
+      { NULL, 0, NULL, 0}
+    };
+  
+  while ( (c = getopt_long(argc, argv, "o:r:e:s:", options, NULL)) != -1)
     switch (c)
-      {
+      {	
       case 'o':
 	priv_name = optarg;
 	break;
@@ -77,14 +104,22 @@ main(int argc, char **argv)
       case 'r':
 	random_name = optarg;
 	break;
-	
+
+      case 's':
+	key_size = uint_arg ('s', optarg);
+	break;
+
+      case 'e':
+	key_e = uint_arg ('e', optarg);
+	break;
+
+      case OPT_HELP:
+	printf("FIXME: Usage information.\n");
+	return EXIT_SUCCESS;
+
       case '?':
-	if (isprint (optopt))
-	  werror("Unknown option `-%c'.\n", optopt);
-	else
-	  werror("Unknown option character `\\x%x'.\n",
-		  optopt);
 	return EXIT_FAILURE;
+
       default:
 	abort();
       }
@@ -111,11 +146,14 @@ main(int argc, char **argv)
   rsa_public_key_init(&pub);
   rsa_private_key_init(&priv);
 
+  if (key_e)
+    mpz_set_ui (pub.e, key_e);
+
   if (!rsa_generate_keypair
       (&pub, &priv,
        (void *) &yarrow, (nettle_random_func *) yarrow256_random,
        NULL, progress,
-       KEYSIZE, ESIZE))
+       key_size, key_e == 0 ? ESIZE : 0))
     {
       werror("Key generation failed.\n");
       return EXIT_FAILURE;
@@ -152,5 +190,11 @@ main(int argc, char **argv)
       return EXIT_FAILURE;
     }
 
+  nettle_buffer_clear(&priv_buffer);
+  nettle_buffer_clear(&pub_buffer);
+  rsa_public_key_clear(&pub);
+  rsa_private_key_clear(&priv);
+  free (pub_name);
+  
   return EXIT_SUCCESS;
 }

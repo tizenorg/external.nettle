@@ -2,7 +2,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2005 Niels Möller
+ * Copyright (C) 2005 Niels MÃ¶ller
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,12 +16,15 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 #ifndef NETTLE_TYPES_H
 #define NETTLE_TYPES_H
+
+/* Pretend these types always exists. Nettle doesn't use them. */
+#define _STDINT_HAVE_INT_FAST32_T 1
 
 #include "nettle-stdint.h"
 
@@ -30,17 +33,19 @@ extern "C" {
 #endif
 
 /* Randomness. Used by key generation and dsa signature creation. */
-typedef void (nettle_random_func)(void *ctx,
-				  unsigned length, uint8_t *dst);
+typedef void nettle_random_func(void *ctx,
+				unsigned length, uint8_t *dst);
 
 /* Progress report function, mainly for key generation. */
-typedef void (nettle_progress_func)(void *ctx,
-				    int c);
+typedef void nettle_progress_func(void *ctx, int c);
+
+/* Realloc function, used by struct nettle_buffer. */
+typedef void *nettle_realloc_func(void *ctx, void *p, unsigned length);
 
 /* Ciphers */
-typedef void (nettle_set_key_func)(void *ctx,
-				   unsigned length,
-				   const uint8_t *key);
+typedef void nettle_set_key_func(void *ctx,
+				 unsigned length,
+				 const uint8_t *key);
 
 /* Uses a void * for cipher contexts.
 
@@ -48,37 +53,37 @@ typedef void (nettle_set_key_func)(void *ctx,
    context, but we use the same typedef for stream ciphers where the
    internal state changes during the encryption. */
 
-typedef void (nettle_crypt_func)(void *ctx,
-				 unsigned length, uint8_t *dst,
-				 const uint8_t *src);
+typedef void nettle_crypt_func(void *ctx,
+			       unsigned length, uint8_t *dst,
+			       const uint8_t *src);
 
 /* Hash algorithms */
-typedef void (nettle_hash_init_func)(void *ctx);
-typedef void (nettle_hash_update_func)(void *ctx,
-				       unsigned length,
-				       const uint8_t *src);
-typedef void (nettle_hash_digest_func)(void *ctx,
-				       unsigned length, uint8_t *dst);
+typedef void nettle_hash_init_func(void *ctx);
+typedef void nettle_hash_update_func(void *ctx,
+				     unsigned length,
+				     const uint8_t *src);
+typedef void nettle_hash_digest_func(void *ctx,
+				     unsigned length, uint8_t *dst);
 
 /* ASCII armor codecs. NOTE: Experimental and subject to change. */
 
-typedef unsigned (nettle_armor_length_func)(unsigned length);
-typedef void (nettle_armor_init_func)(void *ctx);
+typedef unsigned nettle_armor_length_func(unsigned length);
+typedef void nettle_armor_init_func(void *ctx);
 
-typedef unsigned (nettle_armor_encode_update_func)(void *ctx,
-						   uint8_t *dst,
-						   unsigned src_length,
-						   const uint8_t *src);
+typedef unsigned nettle_armor_encode_update_func(void *ctx,
+						 uint8_t *dst,
+						 unsigned src_length,
+						 const uint8_t *src);
 
-typedef unsigned (nettle_armor_encode_final_func)(void *ctx, uint8_t *dst);
+typedef unsigned nettle_armor_encode_final_func(void *ctx, uint8_t *dst);
 
-typedef int (nettle_armor_decode_update_func)(void *ctx,
-					      unsigned *dst_length,
-					      uint8_t *dst,
-					      unsigned src_length,
-					      const uint8_t *src);
+typedef int nettle_armor_decode_update_func(void *ctx,
+					    unsigned *dst_length,
+					    uint8_t *dst,
+					    unsigned src_length,
+					    const uint8_t *src);
 
-typedef int (nettle_armor_decode_final_func)(void *ctx);
+typedef int nettle_armor_decode_final_func(void *ctx);
 
 #ifdef __cplusplus
 }

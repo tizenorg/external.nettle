@@ -1,79 +1,114 @@
-%define nettlemajor 4
-%define hogweedmajor 2
-%define develname nettle-devel
-
-Name:		nettle
-Summary:	Nettle cryptographic library
-Version:	2.1_2.3
-Release:	1
-License:	LGPL-2.1+ and GPL-2.0+
-Group:		System/Libraries
-URL:		http://www.lysator.liu.se/~nisse/nettle/
-Source0:		%{name}-%{version}.tar.gz
-BuildRequires:	autoconf
-BuildRequires:	openssl-devel
-BuildRequires:	gmp-devel
+Name:           nettle
+Version:        2.7.1
+Release:        0
+Summary:        Cryptographic Library
+License:        LGPL-2.1+ and GPL-2.0+
+Group:          Security/Crypto Libraries
+Source0:        ftp://ftp.lysator.liu.se/pub/security/lsh/nettle-%{version}.tar.gz
+Source1:        baselibs.conf
+Source1001: 	nettle.manifest
+BuildRequires:  gmp-devel
+BuildRequires:  pkgconfig
 
 %description
-Nettle is a cryptographic library that is designed to fit easily in more or less any context:
-In crypto toolkits for object-oriented languages (C++, Python, Pike, ...),
-in applications like LSH or GNUPG, or even in kernel space.
+Nettle is a cryptographic library that is designed to fit easily in more or
+less any context: In crypto toolkits for object-oriented languages (C++,
+Python, Pike, ...), in applications like LSH or GNUPG, or even in kernel space.
 
-%package -n %develname
-Group:		Development/C++
-Summary:	Header files for compiling against Nettle library
-Provides:	%name-devel = %{version}-%{release}
+%package -n libhogweed
 
-%description -n %develname
-This is the development package of nettle.
+Summary:        Cryptographic Library for Public Key Algorithms
+License:        LGPL-2.1+
+Group:          Security/Crypto Libraries
+Provides:		libhogweed.so.2
+
+%description -n libhogweed
+Nettle is a cryptographic library that is designed to fit easily in more or
+less any context: In crypto toolkits for object-oriented languages (C++,
+Python, Pike, ...), in applications like LSH or GNUPG, or even in kernel space.
+
+The libhogweed library contains public key algorithms to use with libnettle.
+
+%package -n libnettle-devel
+Summary:        Cryptographic Library
+License:        LGPL-2.1+
+Group:          Development/Libraries
+Requires:       glibc-devel
+Requires:       gmp-devel
+Requires:       libhogweed
+Requires:       libnettle
+
+%description -n libnettle-devel
+Nettle is a cryptographic library that is designed to fit easily in more or
+less any context: In crypto toolkits for object-oriented languages (C++,
+Python, Pike, ...), in applications like LSH or GNUPG, or even in kernel space.
+
+%package -n libnettle
+
+Summary:        Cryptographic Tools
+License:        LGPL-2.1+ and GPL-2.0+
+Group:          Security/Crypto Libraries
+Provides:		libnettle.so.4
+
+%description -n libnettle
+Nettle is a cryptographic library that is designed to fit easily in more or
+less any context: In crypto toolkits for object-oriented languages (C++,
+Python, Pike, ...), in applications like LSH or GNUPG, or even in kernel space.
+
+This package contains a few command-line tools to perform cryptographic
+operations using the nettle library.
 
 %prep
-%setup -q
+%setup -q 
+cp %{SOURCE1001} .
 
 %build
-%configure --disable-openssl --enable-shared
-make
+#%configure --disable-static \
+%configure --enable-shared
+
+make %{?_smp_mflags}
+
+%check
+make check
 
 %install
-make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
-make install-shared DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
-rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
-mkdir -p %{buildroot}/usr/share/license
-cp COPYING %{buildroot}/usr/share/license/%{name}
+%make_install
 
-%clean
-rm -rf $RPM_BUILD_ROOT
+%post   -n libnettle -p /sbin/ldconfig
 
-%files
-/usr/share/license/%{name}
-%manifest nettle.manifest
-%{_bindir}/*
-%{_infodir}/*
-%{_libdir}/libnettle.so.%{nettlemajor}*
-%{_libdir}/libhogweed.so.%{hogweedmajor}*
+%postun -n libnettle -p /sbin/ldconfig
 
-%files -n %develname
+%post   -n libhogweed -p /sbin/ldconfig
+
+%postun -n libhogweed -p /sbin/ldconfig
+
+
+%files -n libnettle
+%manifest %{name}.manifest
+%defattr(-,root,root)
+%doc COPYING*
+%{_libdir}/libnettle.so.*
+
+%files -n libhogweed
+%manifest %{name}.manifest
+%defattr(-,root,root)
+%{_libdir}/libhogweed.so.*
+
+%files -n libnettle-devel
+%manifest %{name}.manifest
+%defattr(-,root,root)
+%{_includedir}/nettle
 %{_libdir}/libnettle.so
 %{_libdir}/libhogweed.so
-%{_includedir}/nettle
+%{_libdir}/pkgconfig/hogweed.pc
+%{_libdir}/pkgconfig/nettle.pc
 
-%post -p /sbin/ldconfig
-
-%postun -p /sbin/ldconfig
+%files -n nettle
+%manifest %{name}.manifest
+%defattr(-,root,root)
+%{_bindir}/nettle-lfib-stream
+%{_bindir}/pkcs1-conv
+%{_bindir}/sexp-conv
+%{_bindir}/nettle-hash
 
 %changelog
-* Wed Nov 27 2013 Keunsoon Lee <keunsoon.lee@samsung.com>
-- [Release] Update changelog for nettle-2.1_2.3
-- Add smack exec_label for several bin file
-
-* Fri Oct 12 2012 Kwangtae Ko <kwangtae.ko@samsung.com>
-- [Release] Update changelog for nettle-2.1_2.2
-
-* Fri Oct 12 2012 Kwangtae Ko <kwangtae.ko@samsung.com>
-- [Title] Add License Information
-
-* Fri Sep 21 2012 Kwangtae Ko <kwangtae.ko@samsung.com>
-- [Release] Update changelog for nettle-2.1_2.1
-
-* Thu Aug 16 2012 Keunsoon Lee <keunsoon.lee@samsung.net>
-- release nettle-2.1-2

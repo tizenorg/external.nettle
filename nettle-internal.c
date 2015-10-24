@@ -6,7 +6,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2002 Niels Möller
+ * Copyright (C) 2002 Niels MÃ¶ller
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +20,8 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 #if HAVE_CONFIG_H
@@ -32,35 +32,29 @@
 #include <stdlib.h>
 
 #include "nettle-internal.h"
-#include "des.h"
 #include "blowfish.h"
+#include "des.h"
+#include "gcm.h"
+#include "salsa20.h"
 
-/* DES uses a different signature for the key set function.
- * And we have to adjust parity. */
+/* DES uses a different signature for the key set function. We ignore
+   the return value indicating weak keys. */
 static void
-des_set_key_hack(void *c, unsigned length, const uint8_t *key)
+des_set_key_hack(void *ctx, unsigned length, const uint8_t *key)
 {
-  struct des_ctx *ctx = c;
-  uint8_t pkey[DES_KEY_SIZE];
-  
   assert(length == DES_KEY_SIZE);
-  des_fix_parity(DES_KEY_SIZE, pkey, key);
-  if (!des_set_key(ctx, pkey))
-    abort();
+  des_set_key(ctx, key);
 }
 
 static void
-des3_set_key_hack(void *c, unsigned length, const uint8_t *key)
+des3_set_key_hack(void *ctx, unsigned length, const uint8_t *key)
 {
-  struct des3_ctx *ctx = c;
-  uint8_t pkey[DES3_KEY_SIZE];
-  
   assert(length == DES3_KEY_SIZE);
-  des_fix_parity(DES3_KEY_SIZE, pkey, key);
-  if (!des3_set_key(ctx, pkey))
-    abort();
+  des3_set_key(ctx, key);
 }
 
+/* NOTE: A bit ugly. Ignores weak keys, and pretends the set:key
+   functions have no return value. */
 const struct nettle_cipher
 nettle_des = {
   "des", sizeof(struct des_ctx),
@@ -79,7 +73,42 @@ nettle_des3 = {
  (nettle_crypt_func *) des3_decrypt
 };
 
-/* NOTE: This is not as nice as one might think, as it will crash if
- * we try to encrypt something with a weak key. */
+/* NOTE: This is not as nice as one might think, as we pretend
+   blowfish_set_key has no return value. */
 const struct nettle_cipher
 nettle_blowfish128 = _NETTLE_CIPHER(blowfish, BLOWFISH, 128);
+
+/* Sets a fix zero iv. For benchmarking only. */
+static void
+salsa20_set_key_hack(void *ctx, unsigned length, const uint8_t *key)
+{
+  static const uint8_t iv[SALSA20_IV_SIZE];
+  salsa20_set_key (ctx, length, key);
+  salsa20_set_iv (ctx, iv);
+}
+
+/* Claim zero block size, to classify as a stream cipher. */
+const struct nettle_cipher
+nettle_salsa20 = {
+  "salsa20", sizeof(struct salsa20_ctx),
+  0, SALSA20_KEY_SIZE,
+  salsa20_set_key_hack, salsa20_set_key_hack,
+  (nettle_crypt_func *) salsa20_crypt,
+  (nettle_crypt_func *) salsa20_crypt
+};
+
+const struct nettle_cipher
+nettle_salsa20r12 = {
+  "salsa20r12", sizeof(struct salsa20_ctx),
+  0, SALSA20_KEY_SIZE,
+  salsa20_set_key_hack, salsa20_set_key_hack,
+  (nettle_crypt_func *) salsa20r12_crypt,
+  (nettle_crypt_func *) salsa20r12_crypt
+};
+
+const struct nettle_aead
+nettle_gcm_aes128 = _NETTLE_AEAD(gcm, GCM, aes, 128);
+const struct nettle_aead
+nettle_gcm_aes192 = _NETTLE_AEAD(gcm, GCM, aes, 192);
+const struct nettle_aead
+nettle_gcm_aes256 = _NETTLE_AEAD(gcm, GCM, aes, 256);

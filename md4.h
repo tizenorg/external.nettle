@@ -5,7 +5,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2003 Niels Möller
+ * Copyright (C) 2003 Niels MÃ¶ller
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +19,8 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
  
 #ifndef NETTLE_MD4_H_INCLUDED
@@ -43,12 +43,13 @@ extern "C" {
 /* Digest is kept internally as 4 32-bit words. */
 #define _MD4_DIGEST_LENGTH 4
 
+/* FIXME: Identical to md5_ctx */
 struct md4_ctx
 {
-  uint32_t digest[_MD4_DIGEST_LENGTH];
-  uint32_t count_l, count_h;    /* Block count */
-  uint8_t block[MD4_DATA_SIZE]; /* Block buffer */
-  unsigned index;               /* Into buffer */
+  uint32_t state[_MD4_DIGEST_LENGTH];
+  uint32_t count_low, count_high;	/* Block count */
+  uint8_t block[MD4_DATA_SIZE];		/* Block buffer */
+  unsigned index;			/* Into buffer */
 };
 
 void

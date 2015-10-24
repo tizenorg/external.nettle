@@ -3,7 +3,7 @@
  * Copyright (C) 2006,2007
  * NTT (Nippon Telegraph and Telephone Corporation).
  *
- * Copyright (C) 2010 Niels Möller
+ * Copyright (C) 2010 Niels MÃ¶ller
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,6 +33,7 @@
 #endif
 
 #include <assert.h>
+#include <limits.h>
 
 #include "camellia-internal.h"
 
@@ -45,7 +46,7 @@
   __kl = (k) >> 32;				\
   __kr = (k) & 0xffffffff;			\
   __t = __xl & __kl;				\
-  __xr ^= ROL32(1, __t);			\
+  __xr ^= ROTL32(1, __t);			\
   __xl ^= (__xr | __kr);			\
   (x) = ((uint64_t) __xl << 32) | __xr;		\
 } while (0)
@@ -58,38 +59,68 @@
   __kr = (k) & 0xffffffff;			\
   __xl ^= (__xr | __kr);			\
   __t = __xl & __kl;				\
-  __xr ^= ROL32(1, __t);			\
+  __xr ^= ROTL32(1, __t);			\
   (x) = ((uint64_t) __xl << 32) | __xr;		\
 } while (0)
 
+#if HAVE_NATIVE_64_BIT
 #define CAMELLIA_ROUNDSM(T, x, k, y) do {			\
     uint32_t __il, __ir;					\
     __ir							\
-      = T->sp1110[(x) & 0xff]				\
-      ^ T->sp0222[((x) >> 24) & 0xff]			\
-      ^ T->sp3033[((x) >> 16) & 0xff]			\
-      ^ T->sp4404[((x) >> 8) & 0xff];			\
+      = T->sp1110[(x) & 0xff]					\
+      ^ T->sp0222[((x) >> 24) & 0xff]				\
+      ^ T->sp3033[((x) >> 16) & 0xff]				\
+      ^ T->sp4404[((x) >> 8) & 0xff];				\
     /* ir == (t6^t7^t8),(t5^t7^t8),(t5^t6^t8),(t5^t6^t7) */	\
     __il							\
-      = T->sp1110[ (x) >> 56]				\
-      ^ T->sp0222[((x) >> 48) & 0xff]			\
-      ^ T->sp3033[((x) >> 40) & 0xff]			\
-      ^ T->sp4404[((x) >> 32) & 0xff];			\
+      = T->sp1110[ (x) >> 56]					\
+      ^ T->sp0222[((x) >> 48) & 0xff]				\
+      ^ T->sp3033[((x) >> 40) & 0xff]				\
+      ^ T->sp4404[((x) >> 32) & 0xff];				\
+    /* il == (t1^t3^t4),(t1^t2^t4),(t1^t2^t3),(t2^t3^t4) */	\
+    __ir ^= __il;						\
+    /* ir == (t1^t3^t4^t6^t7^t8),(t1^t2^t4^t5^t7^t8),		\
+       (t1^t2^t3^t5^t6^t8),(t2^t3^t4^t5^t6^t7)			\
+       == y1,y2,y3,y4 */					\
+    __il = ROTL32(24, __il);					\
+    /* il == (t2^t3^t4),(t1^t3^t4),(t1^t2^t4),(t1^t2^t3) */	\
+    __il ^= __ir;						\
+    /* il == (t1^t2^t6^t7^t8),(t2^t3^t5^t7^t8),			\
+       (t3^t4^t5^t6^t8),(t1^t4^t5^t6^t7)			\
+       == y5,y6,y7,y8 */					\
+    y ^= (k);							\
+    y ^= ((uint64_t) __ir << 32) | __il;			\
+  } while (0)
+#else /* !HAVE_NATIVE_64_BIT */
+#define CAMELLIA_ROUNDSM(T, x, k, y) do {			\
+    uint32_t __il, __ir;					\
+    __ir							\
+      = T->sp1110[(x) & 0xff]					\
+      ^ T->sp0222[((x) >> 24) & 0xff]				\
+      ^ T->sp3033[((x) >> 16) & 0xff]				\
+      ^ T->sp4404[((x) >> 8) & 0xff];				\
+    /* ir == (t6^t7^t8),(t5^t7^t8),(t5^t6^t8),(t5^t6^t7) */	\
+    __il							\
+      = T->sp1110[ (x) >> 56]					\
+      ^ T->sp0222[((x) >> 48) & 0xff]				\
+      ^ T->sp3033[((x) >> 40) & 0xff]				\
+      ^ T->sp4404[((x) >> 32) & 0xff];				\
     /* il == (t1^t3^t4),(t1^t2^t4),(t1^t2^t3),(t2^t3^t4) */	\
     __il ^= (k) >> 32;						\
     __ir ^= (k) & 0xffffffff;					\
     __ir ^= __il;						\
     /* ir == (t1^t3^t4^t6^t7^t8),(t1^t2^t4^t5^t7^t8),		\
-             (t1^t2^t3^t5^t6^t8),(t2^t3^t4^t5^t6^t7)		\
-          == y1,y2,y3,y4 */					\
-    __il = ROL32(24, __il);					\
+       (t1^t2^t3^t5^t6^t8),(t2^t3^t4^t5^t6^t7)			\
+       == y1,y2,y3,y4 */					\
+    __il = ROTL32(24, __il);					\
     /* il == (t2^t3^t4),(t1^t3^t4),(t1^t2^t4),(t1^t2^t3) */	\
     __il ^= __ir;						\
     /* il == (t1^t2^t6^t7^t8),(t2^t3^t5^t7^t8),			\
-             (t3^t4^t5^t6^t8),(t1^t4^t5^t6^t7)			\
-          == y5,y6,y7,y8 */					\
+       (t3^t4^t5^t6^t8),(t1^t4^t5^t6^t7)			\
+       == y5,y6,y7,y8 */					\
     y ^= ((uint64_t) __ir << 32) | __il;			\
   } while (0)
+#endif
 
 void
 _camellia_crypt(const struct camellia_ctx *ctx,

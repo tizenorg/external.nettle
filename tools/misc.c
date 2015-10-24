@@ -2,7 +2,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2002, 2003 Niels Möller
+ * Copyright (C) 2002, 2003 Niels MÃ¶ller
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,8 +16,8 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 #if HAVE_CONFIG_H
@@ -48,8 +48,19 @@ werror(const char *format, ...)
   va_start(args, format);
   vfprintf(stderr, format, args);
   va_end(args);
+}
 
-  exit(EXIT_FAILURE);
+void *
+xalloc(size_t size)
+{
+  void *p = malloc(size);
+  if (!p)
+    {
+      fprintf(stderr, "Virtual memory exhausted.\n");
+      abort();
+    }
+
+  return p;
 }
 
 const char
@@ -64,7 +75,7 @@ sexp_token_chars[0x80] =
     1,1,1,1,1,1,1,1, 1,1,1,0,0,1,0,0,
     /* @ A ... O */
     0,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,	
-    /* P ...             Z [ \ ] ^ _ */
+    /* P ...             Z [ \Â ] ^ _ */
     1,1,1,1,1,1,1,1, 1,1,1,0,0,0,0,1,
     /* ` a, ... o */
     0,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,	

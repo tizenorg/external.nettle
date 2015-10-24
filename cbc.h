@@ -5,7 +5,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2001 Niels Möller
+ * Copyright (C) 2001 Niels MÃ¶ller
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +19,8 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 #ifndef NETTLE_CBC_H_INCLUDED
@@ -37,13 +37,13 @@ extern "C" {
 #define cbc_decrypt nettle_cbc_decrypt
 
 void
-cbc_encrypt(void *ctx, nettle_crypt_func f,
+cbc_encrypt(void *ctx, nettle_crypt_func *f,
 	    unsigned block_size, uint8_t *iv,
 	    unsigned length, uint8_t *dst,
 	    const uint8_t *src);
 
 void
-cbc_decrypt(void *ctx, nettle_crypt_func f,
+cbc_decrypt(void *ctx, nettle_crypt_func *f,
 	    unsigned block_size, uint8_t *iv,
 	    unsigned length, uint8_t *dst,
 	    const uint8_t *src);
@@ -54,15 +54,16 @@ cbc_decrypt(void *ctx, nettle_crypt_func f,
 #define CBC_SET_IV(ctx, data) \
 memcpy((ctx)->iv, (data), sizeof((ctx)->iv))
 
+/* NOTE: Avoid using NULL, as we don't include anything defining it. */
 #define CBC_ENCRYPT(self, f, length, dst, src)		\
-(0 ? ((f)(&(self)->ctx, 0, NULL, NULL))			\
+(0 ? ((f)(&(self)->ctx, 0, (void *)0, (void *)0))			\
    : cbc_encrypt((void *) &(self)->ctx,			\
                  (nettle_crypt_func *) (f),		\
 		 sizeof((self)->iv), (self)->iv,	\
                  (length), (dst), (src)))
 
 #define CBC_DECRYPT(self, f, length, dst, src)		\
-(0 ? ((f)(&(self)->ctx, 0, NULL, NULL))			\
+(0 ? ((f)(&(self)->ctx, 0, (void *)0, (void *)0))			\
    : cbc_decrypt((void *) &(self)->ctx,			\
                  (nettle_crypt_func *) (f),		\
 		 sizeof((self)->iv), (self)->iv,	\

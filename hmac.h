@@ -5,7 +5,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2001, 2002 Niels Möller
+ * Copyright (C) 2001, 2002 Niels MÃ¶ller
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +19,8 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 #ifndef NETTLE_HMAC_H_INCLUDED
@@ -29,7 +29,9 @@
 #include "nettle-meta.h"
 
 #include "md5.h"
-#include "sha.h"
+#include "ripemd160.h"
+#include "sha1.h"
+#include "sha2.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,6 +44,9 @@ extern "C" {
 #define hmac_md5_set_key nettle_hmac_md5_set_key
 #define hmac_md5_update nettle_hmac_md5_update
 #define hmac_md5_digest nettle_hmac_md5_digest
+#define hmac_ripemd160_set_key nettle_hmac_ripemd160_set_key
+#define hmac_ripemd160_update nettle_hmac_ripemd160_update
+#define hmac_ripemd160_digest nettle_hmac_ripemd160_digest
 #define hmac_sha1_set_key nettle_hmac_sha1_set_key
 #define hmac_sha1_update nettle_hmac_sha1_update
 #define hmac_sha1_digest nettle_hmac_sha1_digest
@@ -101,6 +106,22 @@ hmac_md5_update(struct hmac_md5_ctx *ctx,
 void
 hmac_md5_digest(struct hmac_md5_ctx *ctx,
 		unsigned length, uint8_t *digest);
+
+
+/* hmac-ripemd160 */
+struct hmac_ripemd160_ctx HMAC_CTX(struct ripemd160_ctx);
+
+void
+hmac_ripemd160_set_key(struct hmac_ripemd160_ctx *ctx,
+		       unsigned key_length, const uint8_t *key);
+
+void
+hmac_ripemd160_update(struct hmac_ripemd160_ctx *ctx,
+		      unsigned length, const uint8_t *data);
+
+void
+hmac_ripemd160_digest(struct hmac_ripemd160_ctx *ctx,
+		      unsigned length, uint8_t *digest);
 
 
 /* hmac-sha1 */

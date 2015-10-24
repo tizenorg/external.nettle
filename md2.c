@@ -5,7 +5,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2003 Niels Möller, Andreas Sigfridsson
+ * Copyright (C) 2003 Niels MÃ¶ller, Andreas Sigfridsson
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,12 +19,12 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 /* This code originates from the Python Cryptography Toolkit, version 1.0.1.
-   Further hacked by Andreas Sigfridsson and Niels Möller. Original license:
+   Further hacked by Andreas Sigfridsson and Niels MÃ¶ller. Original license:
 
    ===================================================================
    Distribute and use freely; there are no restrictions on further
@@ -98,16 +98,6 @@ md2_transform(struct md2_ctx *ctx, const uint8_t *data)
     }
 }
 
-#if 0
-static void
-md2_final(struct md2_ctx *ctx)
-{
-  unsigned left = MD2_DATA_SIZE - ctx->index;
-  memset(ctx->block + ctx->index, left, left);
-  md2_transform(ctx, ctx->block);
-}
-#endif
-
 void
 md2_init(struct md2_ctx *ctx)
 {
@@ -119,33 +109,7 @@ md2_update(struct md2_ctx *ctx,
 	   unsigned length,
 	   const uint8_t *data)
 {
-  if (ctx->index)
-    {
-      /* Try to fill partial block */
-      unsigned left = MD2_DATA_SIZE - ctx->index;
-      if (length < left)
-	{
-	  memcpy(ctx->block + ctx->index, data, length);
-	  ctx->index += length;
-	  return; /* Finished */
-	}
-      else
-	{
-	  memcpy(ctx->block + ctx->index, data, left);
-	  md2_transform(ctx, ctx->block);
-	  data += left;
-	  length -= left;
-	}
-    }
-  while (length >= MD2_DATA_SIZE)
-    {
-      md2_transform(ctx, data);
-      data += MD2_DATA_SIZE;
-      length -= MD2_DATA_SIZE;
-    }
-  if ((ctx->index = length))     /* This assignment is intended */
-    /* Buffer leftovers */
-    memcpy(ctx->block, data, length);
+  MD_UPDATE(ctx, length, data, md2_transform, (void)0);
 }
 
 void

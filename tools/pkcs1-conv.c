@@ -4,7 +4,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2005, 2009 Niels Möller, Magnus Holmgren
+ * Copyright (C) 2005, 2009 Niels MÃ¶ller, Magnus Holmgren
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +18,8 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 #if HAVE_CONFIG_H
@@ -42,6 +42,7 @@
 
 enum object_type
   {
+    /* Use a range of values which also work as option id:s */
     RSA_PRIVATE_KEY = 0x200,
     RSA_PUBLIC_KEY,
     DSA_PRIVATE_KEY,
@@ -414,6 +415,7 @@ convert_public_key(struct nettle_buffer *buffer, unsigned length, const uint8_t 
 		      nettle_buffer_reset(buffer);
 		      res = dsa_keypair_to_sexp(buffer, NULL, &pub, NULL) > 0;
 		    }
+		  dsa_public_key_clear(&pub);
 		}
 	      if (!res)
 		werror("SubjectPublicKeyInfo: Invalid DSA key.\n");
@@ -437,6 +439,7 @@ convert_public_key(struct nettle_buffer *buffer, unsigned length, const uint8_t 
 		      nettle_buffer_reset(buffer);
 		      res = rsa_keypair_to_sexp(buffer, NULL, &pub, NULL) > 0;
 		    }
+		  rsa_public_key_clear(&pub);
 		}
 	      if (!res)
 		werror("SubjectPublicKeyInfo: Invalid RSA key.\n");
@@ -447,7 +450,7 @@ convert_public_key(struct nettle_buffer *buffer, unsigned length, const uint8_t 
     }
   else
     werror("SubjectPublicKeyInfo: Invalid object.\n");
-  
+
   return res;
 }
 
@@ -571,7 +574,6 @@ convert_file(struct nettle_buffer *buffer,
     }
 }
 
-
 int
 main(int argc, char **argv)
 {
@@ -579,21 +581,29 @@ main(int argc, char **argv)
   enum object_type type = 0;
   int base64 = 0;
   int c;
+
+  enum {
+    OPT_HELP = 0x300,
+    OPT_PRIVATE_RSA = RSA_PRIVATE_KEY,
+    OPT_PUBLIC_RSA = RSA_PUBLIC_KEY,
+    OPT_PRIVATE_DSA = DSA_PRIVATE_KEY,
+    OPT_PUBLIC_KEY = GENERAL_PUBLIC_KEY,
+  };
   
   static const struct option options[] =
     {
       /* Name, args, flag, val */
-      { "help", no_argument, NULL, '?' },
+      { "help", no_argument, NULL, OPT_HELP },
       { "version", no_argument, NULL, 'V' },
-      { "private-rsa-key", no_argument, NULL, RSA_PRIVATE_KEY },
-      { "public-rsa-key", no_argument, NULL, RSA_PUBLIC_KEY },
-      { "private-dsa-key", no_argument, NULL, DSA_PRIVATE_KEY },
-      { "public-key-info", no_argument, NULL, GENERAL_PUBLIC_KEY },
+      { "private-rsa-key", no_argument, NULL, OPT_PRIVATE_RSA },
+      { "public-rsa-key", no_argument, NULL, OPT_PUBLIC_RSA },
+      { "private-dsa-key", no_argument, NULL, OPT_PRIVATE_DSA },
+      { "public-key-info", no_argument, NULL, OPT_PUBLIC_KEY },
       { "base-64", no_argument, NULL, 'b' },
       { NULL, 0, NULL, 0 }
     };
 
-  while ( (c = getopt_long(argc, argv, "V?b", options, NULL)) != -1)
+  while ( (c = getopt_long(argc, argv, "Vb", options, NULL)) != -1)
     {
       switch (c)
 	{
@@ -604,20 +614,23 @@ main(int argc, char **argv)
 	  base64 = 1;
 	  break;
 
-	case RSA_PRIVATE_KEY:
-	case RSA_PUBLIC_KEY:
-	case DSA_PRIVATE_KEY:
-	case GENERAL_PUBLIC_KEY:
+	case OPT_PRIVATE_RSA:
+	case OPT_PUBLIC_RSA:
+	case OPT_PRIVATE_DSA:
+	case OPT_PUBLIC_KEY:
+	  /* Same values as the type codes. */
 	  type = c;
 	  break;
 
-	case '?':
+	case OPT_HELP:
 	  printf("FIXME: Usage information.\n");
 	  return EXIT_SUCCESS;
+	case '?':
+	  return EXIT_FAILURE;
 
 	case 'V':
 	  printf("pkcs1-conv (" PACKAGE_STRING ")\n");
-	  exit (EXIT_SUCCESS);
+	  return EXIT_SUCCESS;
 	}
     }
 
@@ -645,5 +658,7 @@ main(int argc, char **argv)
 	  fclose(f);
 	}
     }
+  nettle_buffer_clear (&buffer);
+
   return EXIT_SUCCESS;
 }

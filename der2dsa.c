@@ -5,7 +5,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2005, 2009 Niels Möller, Magnus Holmgren
+ * Copyright (C) 2005, 2009 Niels MÃ¶ller, Magnus Holmgren
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +19,8 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 #if HAVE_CONFIG_H
@@ -70,8 +70,6 @@ dsa_public_key_from_der_iterator(struct dsa_public_key *pub,
 	  && mpz_sgn(pub->y) > 0);
 }
 
-/* FIXME: Rename this and the next function to something
-   openssl-specific? */
 int
 dsa_openssl_private_key_from_der_iterator(struct dsa_public_key *pub,
 					  struct dsa_private_key *priv,

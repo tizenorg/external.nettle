@@ -5,7 +5,7 @@
 
 /* nettle, low-level cryptographics library
  *
- * Copyright (C) 2001 Niels Möller
+ * Copyright (C) 2001 Niels MÃ¶ller
  *  
  * The nettle library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +19,8 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with the nettle library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
  */
 
 #if HAVE_CONFIG_H
@@ -54,25 +54,5 @@ arcfour_set_key(struct arcfour_ctx *ctx,
       k = (k + 1) % length;
     }
   ctx->i = ctx->j = 0;
-}
-
-void
-arcfour_stream(struct arcfour_ctx *ctx,
-	       unsigned length, uint8_t *dst)
-{
-  register uint8_t i, j;
-  register int si, sj;
-
-  i = ctx->i; j = ctx->j;
-  while(length--)
-    {
-      i++; i &= 0xff;
-      si = ctx->S[i];
-      j += si; j &= 0xff;
-      sj = ctx->S[i] = ctx->S[j];
-      ctx->S[j] = si;
-      *dst++ = ctx->S[ (si + sj) & 0xff ];
-    }
-  ctx->i = i; ctx->j = j;
 }
 
